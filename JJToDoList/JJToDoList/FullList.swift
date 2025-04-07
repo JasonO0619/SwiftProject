@@ -1,44 +1,88 @@
 import SwiftUI
 
 struct FullListScreen: View {
-    @ObservedObject var taskManager: TaskManager  // Ensure TaskManager is available
+    @ObservedObject var taskManager: TaskManager
     @State private var searchText = ""
     @State private var showAddTaskPopup = false
+    @State private var selectedTask: Task? = nil
 
-    var body: some View {
-        ZStack {
-            LinearGradient(gradient: Gradient(colors: [Color.teal.opacity(0.6), Color.cyan.opacity(0.3)]),
-                           startPoint: .topLeading,
-                           endPoint: .bottomTrailing)
-                .ignoresSafeArea()
-
-            VStack {
-                HeaderView(title: "TO-DO LIST", date: "FEB 16, 2025 | 12:00 AM")
-
-                TextField("Enter task here...", text: $searchText)
-                    .padding(8)
-                    .background(Color.white.opacity(0.6))
-                    .cornerRadius(8)
-                    .padding(.horizontal)
-
-                ScrollView {
-                    ForEach(taskManager.tasks) { task in
-                        TaskCard(task: task, taskManager: taskManager)
-                    }
-                }
-                .padding(.horizontal, 15)
-
-                Spacer()
-
-                AddTaskButton(showPopup: $showAddTaskPopup)
+    var filteredTasks: [Task] {
+        if searchText.isEmpty {
+            return taskManager.tasks
+        } else {
+            return taskManager.tasks.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText)
             }
         }
-        .addPopup(showPopup: $showAddTaskPopup, taskManager: taskManager)  // Fix: Pass taskManager
     }
-}
 
-struct FullList_Previews: PreviewProvider {
-    static var previews: some View {
-        FullListScreen(taskManager: TaskManager())  // Ensure preview works
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.teal.opacity(0.6), Color.cyan.opacity(0.3)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+
+                VStack {
+                    // Header
+                    HStack {
+                        Text("TO-DO LIST")
+                            .font(.title)
+                            .bold()
+
+                        Spacer()
+
+                        Text(Date().formatted(date: .long, time: .shortened))
+                            .font(.title3)
+                            .foregroundColor(.black)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 10)
+
+                    // Search bar
+                    TextField("Enter task here...", text: $searchText)
+                        .padding(8)
+                        .background(Color.white.opacity(0.4))
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+
+                    // List with swipe-to-delete
+                    List {
+                        ForEach(filteredTasks) { task in
+                            Button {
+                                selectedTask = task
+                            } label: {
+                                TaskCard(task: task, taskManager: taskManager)
+                                    .listRowInsets(EdgeInsets())
+                                    .background(Color.clear)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .onDelete { indexSet in
+                            for index in indexSet {
+                                let taskToDelete = filteredTasks[index]
+                                if let realIndex = taskManager.tasks.firstIndex(where: { $0.id == taskToDelete.id }) {
+                                    taskManager.tasks.remove(at: realIndex)
+                                }
+                            }
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)// ✅ removes white bg under List
+                    .background(Color.clear)
+                    
+                    Spacer()
+
+                    AddTaskButton(showPopup: $showAddTaskPopup)
+                }
+            }
+            .addPopup(showPopup: $showAddTaskPopup, taskManager: taskManager)
+            .navigationDestination(item: $selectedTask) { task in
+                TaskDetailScreen(task: task, taskManager: taskManager)
+            }
+        }
     }
 }

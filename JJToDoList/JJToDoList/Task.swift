@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct Task: Identifiable, Codable {
+struct Task: Identifiable, Codable, Hashable {
     var id = UUID()
     var title: String
     var description: String

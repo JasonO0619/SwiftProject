@@ -33,7 +33,7 @@ struct TaskDetailScreen: View {
                 presentationMode.wrappedValue.dismiss()
             }
             
-            Button("Delete Task", role: .destructive) {
+            Button("Delete/Complete Task", role: .destructive) {
                 taskManager.removeTask(task)
                 presentationMode.wrappedValue.dismiss()
             }

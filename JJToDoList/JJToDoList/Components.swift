@@ -32,34 +32,46 @@ struct HeaderView: View {
 // MARK: - Task Card (Displays a Single Task)
 struct TaskCard: View {
     var task: Task
-    @ObservedObject var taskManager: TaskManager
+    var taskManager: TaskManager
+
+    var isOverdue: Bool {
+        return task.dueDate < Date() && !task.isCompleted
+    }
 
     var body: some View {
-        NavigationLink(destination: TaskDetailScreen(task: task, taskManager: taskManager)) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(task.title).font(.headline)
-                    .foregroundColor(.black)
-                Text(task.description).font(.subheadline).foregroundColor(.black)
-
-                HStack {
-                    Text("Priority: \(task.priorityIcon) \(task.priority)")
-                    Spacer()
-                    Text("Due: \(task.dueDate.formatted(date: .abbreviated, time: .shortened))")
-                }
-                .foregroundColor(.black)
-                .font(.caption)
-
-                ProgressView(value: 0.5)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .padding(.top, 5)
+        VStack(alignment: .leading, spacing: 8) {
+            if !task.title.isEmpty {
+                Text(task.title)
+                    .font(.headline)
             }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(10)
-            .shadow(radius: 2)
+
+            if !task.description.isEmpty {
+                Text(task.description)
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
+
+            HStack {
+                Text("Priority: \(task.priorityIcon) \(task.priority)")
+                Spacer()
+                Text("Due: \(task.dueDate.formatted(date: .long, time: .shortened))")
+            }
+            .font(.footnote)
+
+            // Optional: Progress bar or indicator
+            Rectangle()
+                .fill(Color.blue)
+                .frame(height: 4)
+                .cornerRadius(2)
+                .padding(.top, 4)
         }
+        .padding()
+        .background(isOverdue ? Color.red.opacity(0.3) : Color.white.opacity(0.3)) // 🔥 Overdue effect
+        .cornerRadius(12)
+        .shadow(radius: 3)
     }
 }
+
 
 
 // MARK: - Full Task Card (Expanded Task View)

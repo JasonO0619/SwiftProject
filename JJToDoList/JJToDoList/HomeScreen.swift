@@ -25,7 +25,20 @@ struct HomeScreen: View {
                     .ignoresSafeArea()
 
                 VStack {
-                    HeaderView(title: "TO-DO LIST", date: Date().formatted(date: .abbreviated, time: .omitted))
+                    HStack {
+                        Text("TO-DO LIST")
+                            .font(.title)
+                            .bold()
+
+                        Spacer()
+
+                        Text(Date().formatted(date: .long, time: .shortened))
+                            .font(.title3) // Slightly smaller than .title
+                            .foregroundColor(.black)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 10)
+
 
                     // Category Filter Section
                     ScrollView(.horizontal, showsIndicators: false) {
